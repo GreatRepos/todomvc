@@ -21,9 +21,31 @@ module.exports.todoMVCTest = function (frameworkName, baseUrl, speedMode, laxMod
 		}
 
 		function launchBrowser() {
-			browser = new webdriver.Builder()
-			.withCapabilities({browserName : browserName})
-			.build();
+
+			if (process.env.SAUCE_USERNAME !== undefined) {
+				browser = new webdriver.Builder()
+				.usingServer(
+					'http://' +
+					process.env.SAUCE_USERNAME +
+					':' +
+					process.env.SAUCE_ACCESS_KEY +
+					'@ondemand.saucelabs.com:80/wd/hub'
+				)
+				.withCapabilities({
+					'tunnel-identifier': process.env.TRAVIS_JOB_NUMBER,
+					build: process.env.TRAVIS_BUILD_NUMBER,
+					browserName: browserName,
+					username: process.env.SAUCE_USERNAME,
+					accessKey: process.env.SAUCE_ACCESS_KEY
+				})
+				.build();
+			} else {
+				browser = new webdriver.Builder()
+				.withCapabilities({
+					browserName: browserName
+				})
+				.build();
+			}
 
 			browser.get(baseUrl);
 
@@ -285,7 +307,7 @@ module.exports.todoMVCTest = function (frameworkName, baseUrl, speedMode, laxMod
 			});
 		});
 
-		/*test.describe('Persistence', function () {
+		test.describe('Persistence', function () {
 			test.it('should persist its data', function () {
 				// set up state
 				page.enterItem(TODO_ITEM_ONE);
@@ -302,13 +324,13 @@ module.exports.todoMVCTest = function (frameworkName, baseUrl, speedMode, laxMod
 				stateTest();
 
 				// navigate away and back again
-				browser.get(otherUrl);
+				browser.get('about:blank');
 				browser.get(baseUrl);
 
 				// repeat the state test
 				stateTest();
 			});
-		});*/
+		});
 
 		test.describe('Routing', function () {
 			test.it('should allow me to display active items', function () {
